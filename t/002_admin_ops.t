@@ -97,7 +97,7 @@ describe "A Rados Gateway Admin Client" => sub {
 					all(
 						isa('Ceph::RadosGW::Admin::User'),					
 						methods(
-							user_id      => 'test_user2',
+							user_id      => 'test_user3',
 							display_name => 'display',
 						)
 					)
