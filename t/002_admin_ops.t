@@ -103,7 +103,18 @@ describe "A Rados Gateway Admin Client" => sub {
 					)
 				);
 			};
+            it "should be able to delete a user" => sub {
+				$client->create_user(
+					uid          => 'test_user4',
+					display_name => 'display',
+				);
+                $client->delete_user(uid => 'test_user4');
+                dies_ok(sub {
+                    $sut->get_user(uid => 'test_user4');
+                });
+            };
 		};
+        
 		
 	}
 };

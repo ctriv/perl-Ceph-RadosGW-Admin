@@ -58,6 +58,11 @@ sub create_user {
 	);
 }
 
+sub delete_user {
+	my ($self, %args) = @_;
+    $self->_request(DELETE => 'user', %args);
+}
+
 sub build_useragent {
 	require LWP::UserAgent;
 	return LWP::UserAgent->new;
@@ -66,7 +71,6 @@ sub build_useragent {
 sub _request {
 	my ($self, $method, $path, %args) = @_;
 	
-	my $query_string;
 	my $content = '';
 
 	my $query_string = _make_query(%args, format => 'json');
@@ -87,10 +91,12 @@ sub _request {
 	unless ($res->is_success) {
 		die sprintf("%s - %s", $res->status_line, $res->content);
 	}
-		
-	my $data = JSON::decode_json($res->content);
-	
-	return %$data;
+    if ( $res->content ) {
+    	my $data = JSON::decode_json($res->content);
+        return %$data;
+    } else {
+        return '';
+    }
 }
 
 sub _make_query {
