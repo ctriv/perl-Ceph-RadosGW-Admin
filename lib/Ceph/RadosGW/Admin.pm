@@ -68,18 +68,13 @@ sub _request {
 	
 	my $query_string;
 	my $content = '';
-	if ($method eq 'GET' || $method eq 'DELETE') {
-		$query_string = _make_query(%args, format => 'json');
-	}
-	else {
-		$query_string = _make_query(format => 'json');
-		$content      = _make_query(%args);
-	}
+
+	my $query_string = _make_query(%args, format => 'json');
 	
 	my $request_builder = Ceph::RadosGW::Admin::HTTPRequest->new(
 		method     => $method,
 		path       => "admin/$path?$query_string",
-		content    => $content,
+		content    => '',
 		url        => $self->url,
 		access_key => $self->access_key,
 		secret_key => $self->secret_key,
@@ -92,8 +87,7 @@ sub _request {
 	unless ($res->is_success) {
 		die sprintf("%s - %s", $res->status_line, $res->content);
 	}
-	
-	
+		
 	my $data = JSON::decode_json($res->content);
 	
 	return %$data;
@@ -102,8 +96,14 @@ sub _request {
 sub _make_query {
 	my %args = @_;
 	
+	my %fixed;
+	while (my ($key, $val) = each %args) {
+		$key =~ s/_/-/g;
+		$fixed{$key} = $val;
+	}
+	
 	my $u = URI->new("", "http");
-	$u->query_form_hash(\%args);
+	$u->query_form_hash(\%fixed);
 	
 	return $u->query;
 
