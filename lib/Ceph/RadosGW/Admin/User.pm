@@ -66,4 +66,12 @@ sub _request {
 	);
 }
 
+sub as_hashref {
+    my ($self) = @_;
+    
+    return {
+	map { $_ => $self->$_ } qw/user_id display_name suspended max_buckets keys caps/
+    };
+}
+
 1;
