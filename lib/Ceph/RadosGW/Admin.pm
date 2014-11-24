@@ -58,34 +58,16 @@ sub create_user {
 	);
 }
 
-sub delete_user {
-	my ($self, %args) = @_;
-    $self->_request(DELETE => 'user', %args);
-}
-
-sub modify_user {
-    my ($self, %args) = @_;
-
-    my %user_data = $self->_request(POST => 'user', %args);
-    
-	return Ceph::RadosGW::Admin::User->new(
-		%user_data,
-		_client => $self
-	);    
-}
-
-sub get_usage {
-	my ($self, %args) = @_;
-	
-	my %usage = $self->_request(GET => 'usage', %args);
-
-    return %usage;
-}
-
-
 sub build_useragent {
 	require LWP::UserAgent;
 	return LWP::UserAgent->new;
+}
+
+sub _debug {
+	if ($ENV{DEBUG_CEPH_CALLS}) {
+		require Data::Dumper;
+		warn Data::Dumper::Dumper(@_);
+	}
 }
 
 sub _request {
@@ -108,15 +90,32 @@ sub _request {
     	
 	my $res = $self->useragent->request($req);
 	
+	_debug($res);
+	
 	unless ($res->is_success) {
 		die sprintf("%s - %s", $res->status_line, $res->content);
 	}
     
     if ($res->content) {
-    	my $data = JSON::decode_json($res->content);
-        return %$data;
+    	my $data = eval {
+			JSON::decode_json($res->content);
+		};
+		
+		if (my $e = $@) {
+			die "Could not deserialize server response: $e\nContent: " . $res->content . "\n";			
+		}
+		
+		if (ref($data) eq 'HASH') {
+			return %$data;
+		}
+		elsif (ref($data) eq 'ARRAY') {
+			return @$data;
+		}
+		else {
+			die "Didn't get an array or hash reference\n";
+		}
     } else {
-        return '';
+        return;
     }
 }
 
