@@ -7,106 +7,195 @@ use Test::Spec;
 use Test::More;
 use Test::Deep;
 use Test::Exception;
+use Test::VCR::LWP qw(withVCR);
 use Ceph::RadosGW::Admin;
+use FindBin;
+use File::Spec;
 
-$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
-my $access_key = '6Z3IT18MAJX2YAWGV9BT';
-my $secret_key = '5M083d5zLNp4wN1VfAU9NEJIlJLp6IxMBYeqEOoM';
-my $url	       = 'https://rados2.dev.liquidweb.com/';
-
-describe "A Rados Gateway Admin Client" => sub {
-	
-	it "should require connection arguments" => sub {
-		dies_ok {
-			Ceph::RadosGW::Admin->new;
-		};
-		
-		like($@, qr/required/i);		
+BEGIN {
+	eval {
+		require File::Spec->catfile($FindBin::Bin, 'test_settings.pl');
 	};
 	
-	describe "with connection details" => sub {
-		my $sut;
-	
-		before each => sub {
-			$sut = Ceph::RadosGW::Admin->new(
-				access_key => $access_key,
-				secret_key => $secret_key,
-				url        => $url,
-			);
+	if ($@) {
+		require File::Spec->catfile($FindBin::Bin, 'test_settings.pl.sample');
+	}
+}
+
+$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
+my ($access_key, $secret_key, $url) = get_auth_info();
+
+
+
+
+describe "A Rados Gateway Admin Client" => sub {
+	withVCR{	
+		it "should require connection arguments" => sub {
+			dies_ok {
+				Ceph::RadosGW::Admin->new;
+			};
+		
+			like($@, qr/required/i);		
 		};
 	
-		it "should instantiate itself" => sub {
-			isa_ok($sut, 'Ceph::RadosGW::Admin');
-		};
-		describe "working with users" => sub {
-			my $client;
+		describe "with connection details" => sub {
+			my $sut;
+	
 			before each => sub {
-				$client = Ceph::RadosGW::Admin->new(
+				$sut = Ceph::RadosGW::Admin->new(
 					access_key => $access_key,
 					secret_key => $secret_key,
 					url        => $url,
 				);
 			};
-			it "should be able to look up a user" => sub {
-				my $sut = $client->get_user(uid => 'test_user');
-				cmp_deeply(
-					$sut,
-					all(
-						isa('Ceph::RadosGW::Admin::User'),					
-						methods(
-							user_id      => 'test_user',
-							display_name => re(qr/\S/),
-							suspended    => any(1,0), 
-						)
-					)
-				);
+	
+			it "should instantiate itself" => sub {
+				isa_ok($sut, 'Ceph::RadosGW::Admin');
 			};
-			it "should be able to look up another user" => sub {
-				my $sut = $client->get_user(uid => 'test_user2');
-				cmp_deeply(
-					$sut,
-					all(
-						isa('Ceph::RadosGW::Admin::User'),					
-						methods(
-							user_id      => 'test_user2',
-							display_name => re(qr/\S/),
-							suspended    => any(1,0),
-							max_buckets  => 1000,
-							subusers     => [],
-							keys         => [
-								{
-									user => 'test_user2',
-									access_key => re(qr/\S/),
-									secret_key => re(qr/\S/),
-								}
-							],
-							swift_keys => [],
-							caps       => [],
+			describe "working with users" => sub {
+				my $client;
+				before each => sub {
+					$client = Ceph::RadosGW::Admin->new(
+						access_key => $access_key,
+						secret_key => $secret_key,
+						url        => $url,
+					);
+					
+				};
+				it "should be able to look up a user" => sub {
+					my $sut = $client->get_user(uid => 'test_user');
+					cmp_deeply(
+						$sut,
+						all(
+							isa('Ceph::RadosGW::Admin::User'),					
+							methods(
+								user_id      => 'test_user',
+								display_name => re(qr/\S/),
+								suspended    => any(1,0), 
+							)
 						)
-					)
-				);
+					);
+				};
+				it "should be able to look up another user" => sub {
+					my $sut = $client->get_user(uid => 'test_user2');
+					cmp_deeply(
+						$sut,
+						all(
+							isa('Ceph::RadosGW::Admin::User'),					
+							methods(
+								user_id      => 'test_user2',
+								display_name => re(qr/\S/),
+								suspended    => any(1,0),
+								max_buckets  => 1000,
+								subusers     => [],
+								keys         => [
+									{
+										user => 'test_user2',
+										access_key => re(qr/\S/),
+										secret_key => re(qr/\S/),
+									}
+								],
+								swift_keys => [],
+								caps       => [],
+							)
+						)
+					);
 				
-			};
-			it "should be able to create a user" => sub {
-				my $sut = $client->create_user(
-					uid          => 'test_user3',
-					display_name => 'display',
-				);
-				cmp_deeply(
-					$sut,
-					all(
-						isa('Ceph::RadosGW::Admin::User'),					
-						methods(
-							user_id      => 'test_user2',
-							display_name => 'display',
+				};
+				it "should be able to create a user" => sub {
+					eval {
+						$client->get_user(
+							uid => 'test_user3',
+						)->delete;
+					};
+					my $sut = $client->create_user(
+						uid          => 'test_user3',
+						display_name => 'display',
+					);
+					cmp_deeply(
+						$sut,
+						all(
+							isa('Ceph::RadosGW::Admin::User'),					
+							methods(
+								user_id      => 'test_user3',
+								display_name => 'display',
+							)
 						)
-					)
-				);
+					);
+				};
 			};
 		};
-		
-	}
+	};
 };
 
-
+describe "A User" => sub {
+	my ($client, $user);
+	before each => sub {
+		eval {
+			$client->get_user(
+				uid => 'test_user6',
+			)->delete;
+		};
+		$client = Ceph::RadosGW::Admin->new(
+			access_key => $access_key,
+			secret_key => $secret_key,
+			url        => $url,
+		);
+		$user = $client->create_user(
+			uid          => 'test_user6',
+			display_name => 'display',
+		);
+	};
+	it "should be able to delete itself" => sub {
+		$user->delete;
+		dies_ok {
+			$client->get_user(uid => 'test_user6');
+		};
+	};
+	it "should be able to save changes" => sub {
+		$user->display_name('new display name');
+		$user->suspended(1);
+		$user->save;
+		my $sut = $client->get_user(uid => 'test_user6');
+		cmp_deeply(
+			$sut,
+			all(
+				isa('Ceph::RadosGW::Admin::User'),
+				methods(
+					user_id      => 'test_user6',
+					display_name => 'new display name',
+					suspended    => 1,
+				)
+			)
+		);
+	};
+	it "should be able to add a key" => sub {
+		my @sut = $user->add_key();
+		cmp_deeply(
+			\@sut,
+			superbagof(
+				{
+					user         => 'test_user6',
+					'access_key' => re(qr/\S/),
+					'secret_key' => re(qr/\S/),
+				},
+				{
+					user         => 'test_user6',
+					'access_key' => re(qr/\S/),
+					'secret_key' => re(qr/\S/),
+				}
+			)
+		);
+	};
+	it "should be able to delete a key" => sub {
+		$user->delete_key(access_key => $user->keys->[0]{access_key});
+		my $sut = $client->get_user(uid => $user->user_id);
+		
+		cmp_deeply($sut->keys, []);
+	};
+	it "should know how much resources it has used" => sub {
+		my %sut = $user->get_usage();
+		ok(keys %sut);
+	};
+};
 runtests unless caller;

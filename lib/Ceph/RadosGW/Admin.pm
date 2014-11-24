@@ -63,10 +63,16 @@ sub build_useragent {
 	return LWP::UserAgent->new;
 }
 
+sub _debug {
+	if ($ENV{DEBUG_CEPH_CALLS}) {
+		require Data::Dumper;
+		warn Data::Dumper::Dumper(@_);
+	}
+}
+
 sub _request {
 	my ($self, $method, $path, %args) = @_;
-	
-	my $query_string;
+    	
 	my $content = '';
 
 	my $query_string = _make_query(%args, format => 'json');
@@ -79,18 +85,38 @@ sub _request {
 		access_key => $self->access_key,
 		secret_key => $self->secret_key,
 	);	
-	
+
 	my $req = $request_builder->http_request();
-	
+    	
 	my $res = $self->useragent->request($req);
+	
+	_debug($res);
 	
 	unless ($res->is_success) {
 		die sprintf("%s - %s", $res->status_line, $res->content);
 	}
+    
+    if ($res->content) {
+    	my $data = eval {
+			JSON::decode_json($res->content);
+		};
 		
-	my $data = JSON::decode_json($res->content);
-	
-	return %$data;
+		if (my $e = $@) {
+			die "Could not deserialize server response: $e\nContent: " . $res->content . "\n";			
+		}
+		
+		if (ref($data) eq 'HASH') {
+			return %$data;
+		}
+		elsif (ref($data) eq 'ARRAY') {
+			return @$data;
+		}
+		else {
+			die "Didn't get an array or hash reference\n";
+		}
+    } else {
+        return;
+    }
 }
 
 sub _make_query {

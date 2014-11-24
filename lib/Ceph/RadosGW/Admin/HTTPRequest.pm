@@ -166,7 +166,7 @@ sub _canonical_string {
         }
     }
 
-    warn "Buf:\n$buf\n";
+    #warn "Buf:\n$buf\n";
     
     return $buf;
 }
