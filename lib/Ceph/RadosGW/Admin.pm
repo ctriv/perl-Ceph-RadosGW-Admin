@@ -63,6 +63,26 @@ sub delete_user {
     $self->_request(DELETE => 'user', %args);
 }
 
+sub modify_user {
+    my ($self, %args) = @_;
+
+    my %user_data = $self->_request(POST => 'user', %args);
+    
+	return Ceph::RadosGW::Admin::User->new(
+		%user_data,
+		_client => $self
+	);    
+}
+
+sub get_usage {
+	my ($self, %args) = @_;
+	
+	my %usage = $self->_request(GET => 'usage', %args);
+
+    return %usage;
+}
+
+
 sub build_useragent {
 	require LWP::UserAgent;
 	return LWP::UserAgent->new;
@@ -70,7 +90,7 @@ sub build_useragent {
 
 sub _request {
 	my ($self, $method, $path, %args) = @_;
-	
+    	
 	my $content = '';
 
 	my $query_string = _make_query(%args, format => 'json');
@@ -83,15 +103,16 @@ sub _request {
 		access_key => $self->access_key,
 		secret_key => $self->secret_key,
 	);	
-	
+
 	my $req = $request_builder->http_request();
-	
+    	
 	my $res = $self->useragent->request($req);
 	
 	unless ($res->is_success) {
 		die sprintf("%s - %s", $res->status_line, $res->content);
 	}
-    if ( $res->content ) {
+    
+    if ($res->content) {
     	my $data = JSON::decode_json($res->content);
         return %$data;
     } else {
