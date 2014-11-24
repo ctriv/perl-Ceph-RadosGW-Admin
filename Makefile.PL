@@ -20,14 +20,14 @@ WriteMakefile(
 			'Mark Ng <cpan@markng.co.uk>',
 		],
 		resources   => {
-			homepage    => 'https://github.com/creinhardt/Ceph-RadosGW-Admin',
+			homepage    => 'https://github.com/ctriv/Ceph-RadosGW-Admin',
 			bugtracker  => {
-				web    => 'https://github.com/creinhardt/Ceph-RadosGW-Admin/issues',
+				web    => 'https://github.com/ctriv/Ceph-RadosGW-Admin/issues',
 			},
 			repository  => {
 				type => 'git',
-				url  => 'https://github.com/creinhardt/Ceph-RadosGW-Admin.git',
-				web  => 'https://github.com/creinhardt/Ceph-RadosGW-Admin',
+				url  => 'https://github.com/ctriv/Ceph-RadosGW-Admin.git',
+				web  => 'https://github.com/ctriv/Ceph-RadosGW-Admin',
 			},
 		},
 	},
