@@ -17,10 +17,6 @@ our $VERSION   = '0.1';
 
 Ceph::RadosGW::Admin - Bindings for the rados gateway admin api.
 
-=head1 VERSION
-
-version 0.1
-
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
