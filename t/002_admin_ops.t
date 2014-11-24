@@ -178,7 +178,7 @@ describe "A User" => sub {
 		);
 	};
 	it "should be able to add a key" => sub {
-		my @sut = $user->add_key();
+		my @sut = $user->create_key();
 		cmp_deeply(
 			\@sut,
 			superbagof(

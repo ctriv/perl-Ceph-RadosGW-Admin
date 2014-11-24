@@ -31,7 +31,7 @@ sub save {
     );
 }
 
-sub add_key {
+sub create_key {
     my ($self) = @_;
 	return $self->_request(
 		PUT          => 'user',
