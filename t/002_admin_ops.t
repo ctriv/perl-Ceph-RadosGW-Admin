@@ -201,9 +201,14 @@ describe "A User" => sub {
 		
 		cmp_deeply($sut->keys, []);
 	};
-	it "should know how much resources it has used" => sub {
+	it "should know its interaction history" => sub {
 		my %sut = $user->get_usage();
 		ok(keys %sut);
+	};
+	it "should know how many resources it is using" => sub {
+		lives_ok {
+			$user->get_bucket_info();
+		};
 	};
 };
 runtests unless caller;

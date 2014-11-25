@@ -57,6 +57,14 @@ sub get_usage {
     return %usage;
 }
 
+sub get_bucket_info {
+    my ($self) = @_;
+    
+    my %info = $self->_request(GET => 'bucket');
+    
+    return %info;
+}
+
 sub _request {
 	my ($self, @args) = @_;
 	
