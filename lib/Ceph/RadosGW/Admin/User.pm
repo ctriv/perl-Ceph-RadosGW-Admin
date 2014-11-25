@@ -60,7 +60,10 @@ sub get_usage {
 sub get_bucket_info {
     my ($self) = @_;
     
-    my %info = $self->_request(GET => 'bucket');
+    my %info = $self->_request(
+	GET   => 'bucket',
+	stats => 'True',    
+    );
     
     return %info;
 }
