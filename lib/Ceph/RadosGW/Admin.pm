@@ -67,7 +67,7 @@ sub _debug {
 
 sub _request {
 	my ($self, $method, $path, %args) = @_;
-    	
+	
 	my $content = '';
 
 	my $query_string = _make_query(%args, format => 'json');
@@ -82,7 +82,7 @@ sub _request {
 	);	
 
 	my $req = $request_builder->http_request();
-    	
+	
 	my $res = $self->useragent->request($req);
 	
 	_debug($res);
@@ -91,11 +91,11 @@ sub _request {
 		die sprintf("%s - %s (%s)", $res->status_line, $res->content, $req->as_string);
 	}
     
-    if ($res->content) {
-    	my $data = eval {
+	if ($res->content) {
+		my $data = eval {
 			JSON::decode_json($res->content);
 		};
-		
+	
 		if (my $e = $@) {
 			die "Could not deserialize server response: $e\nContent: " . $res->content . "\n";			
 		}
@@ -109,9 +109,9 @@ sub _request {
 		else {
 			die "Didn't get an array or hash reference\n";
 		}
-    } else {
-        return;
-    }
+	} else {
+		return;
+	}
 }
 
 sub _make_query {

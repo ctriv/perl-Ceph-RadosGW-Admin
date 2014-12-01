@@ -16,23 +16,27 @@ has caps         => (is => 'rw', required => 1, isa => 'ArrayRef[Str]');
 has _client      => (is => 'ro', required => 1, isa => 'Ceph::RadosGW::Admin');
 
 sub delete {
-    my ($self) = @_;
-    $self->_request(DELETE => 'user');
+	my ($self) = @_;
+	
+	$self->_request(DELETE => 'user');
+	
 	return 1;
 }
 
 sub save {
-    my ($self) = @_;
-    return $self->_request(
+	my ($self) = @_;
+	
+	return $self->_request(
 		POST         => 'user',
-        display_name => $self->display_name,
-        suspended    => $self->suspended,
-        max_buckets  => $self->max_buckets,
-    );
+		display_name => $self->display_name,
+		suspended    => $self->suspended,
+		max_buckets  => $self->max_buckets,
+	);
 }
 
 sub create_key {
-    my ($self) = @_;
+	my ($self) = @_;
+	
 	return $self->_request(
 		PUT          => 'user',
 		key          => '',
@@ -42,6 +46,7 @@ sub create_key {
 
 sub delete_key {
 	my ($self, %args) = @_;
+	
 	return $self->_request(
 		DELETE     => 'user',
 		key        => '',
@@ -54,18 +59,18 @@ sub get_usage {
 
 	my %usage = $self->_request(GET => 'usage', %args);
 
-    return %usage;
+	return %usage;
 }
 
 sub get_bucket_info {
-    my ($self) = @_;
-    
-    my @info = $self->_request(
-	GET   => 'bucket',
-	stats => 'True',    
-    );
-    
-    return @info;
+	my ($self) = @_;
+
+	my @info = $self->_request(
+		GET   => 'bucket',
+		stats => 'True',    
+	);
+
+	return @info;
 }
 
 sub _request {
@@ -78,11 +83,11 @@ sub _request {
 }
 
 sub as_hashref {
-    my ($self) = @_;
-    
-    return {
-	map { $_ => $self->$_ } qw/user_id display_name suspended max_buckets keys caps/
-    };
+	my ($self) = @_;
+	
+	return {
+		map { $_ => $self->$_ } qw/user_id display_name suspended max_buckets keys caps/
+	};
 }
 
 1;
