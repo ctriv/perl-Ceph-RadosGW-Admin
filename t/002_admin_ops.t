@@ -7,10 +7,13 @@ use Test::Spec;
 use Test::More;
 use Test::Deep;
 use Test::Exception;
-use Test::VCR::LWP qw(withVCR);
+use Test::VCR::LWP qw(withVCR withoutVCR);
 use Ceph::RadosGW::Admin;
 use FindBin;
 use File::Spec;
+use Test::MockTime qw(set_absolute_time);
+
+set_absolute_time('2014-11-26T10:55:30Z');
 
 BEGIN {
 	eval {
@@ -22,132 +25,149 @@ BEGIN {
 	}
 }
 
+
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
 my ($access_key, $secret_key, $url) = get_auth_info();
 
 
 describe "A Rados Gateway Admin Client" => sub {
-	withVCR{	
-		it "should require connection arguments" => sub {
-			dies_ok {
-				Ceph::RadosGW::Admin->new;
-			};
-		
-			like($@, qr/required/i);		
+	it "should require connection arguments" => sub {
+		dies_ok {
+			Ceph::RadosGW::Admin->new;
 		};
 	
-		describe "with connection details" => sub {
-			my $sut;
-	
+		like($@, qr/required/i);		
+	};
+
+	describe "with connection details" => sub {
+		my $sut;
+
+		before each => sub {
+			$sut = Ceph::RadosGW::Admin->new(
+				access_key => $access_key,
+				secret_key => $secret_key,
+				url        => $url,
+			);
+		};
+
+		it "should instantiate itself" => sub {
+			isa_ok($sut, 'Ceph::RadosGW::Admin');
+		};
+		describe "working with users" => sub {
+			my $client;
 			before each => sub {
-				$sut = Ceph::RadosGW::Admin->new(
+				$client = Ceph::RadosGW::Admin->new(
 					access_key => $access_key,
 					secret_key => $secret_key,
 					url        => $url,
 				);
-			};
-	
-			it "should instantiate itself" => sub {
-				isa_ok($sut, 'Ceph::RadosGW::Admin');
-			};
-			describe "working with users" => sub {
-				my $client;
-				before each => sub {
-					$client = Ceph::RadosGW::Admin->new(
-						access_key => $access_key,
-						secret_key => $secret_key,
-						url        => $url,
-					);
-					
-				};
-				it "should be able to look up a user" => sub {
-					my $sut = $client->get_user(uid => 'test_user');
-					cmp_deeply(
-						$sut,
-						all(
-							isa('Ceph::RadosGW::Admin::User'),					
-							methods(
-								user_id      => 'test_user',
-								display_name => re(qr/\S/),
-								suspended    => any(1,0), 
-							)
-						)
-					);
-				};
-				it "should be able to look up another user" => sub {
-					my $sut = $client->get_user(uid => 'test_user2');
-					cmp_deeply(
-						$sut,
-						all(
-							isa('Ceph::RadosGW::Admin::User'),					
-							methods(
-								user_id      => 'test_user2',
-								display_name => re(qr/\S/),
-								suspended    => any(1,0),
-								max_buckets  => 1000,
-								subusers     => [],
-								keys         => [
-									{
-										user => 'test_user2',
-										access_key => re(qr/\S/),
-										secret_key => re(qr/\S/),
-									}
-								],
-								swift_keys => [],
-								caps       => [],
-							)
-						)
-					);
 				
-				};
-				it "should be able to create a user" => sub {
-					eval {
-						$client->get_user(
-							uid => 'test_user3',
-						)->delete;
-					};
-					my $sut = $client->create_user(
-						uid          => 'test_user3',
-						display_name => 'display',
-					);
-					cmp_deeply(
-						$sut,
-						all(
-							isa('Ceph::RadosGW::Admin::User'),					
-							methods(
-								user_id      => 'test_user3',
-								display_name => 'display',
-							)
+			};
+			it "should be able to look up a user" => sub {
+				my $sut = $client->get_user(uid => 'test_user');
+				cmp_deeply(
+					$sut,
+					all(
+						isa('Ceph::RadosGW::Admin::User'),					
+						methods(
+							user_id      => 'test_user',
+							display_name => re(qr/\S/),
+							suspended    => any(1,0), 
 						)
-					);
+					)
+				);
+			};
+			it "should be able to look up another user" => sub {
+				my $sut = $client->get_user(uid => 'test_user2');
+				cmp_deeply(
+					$sut,
+					all(
+						isa('Ceph::RadosGW::Admin::User'),					
+						methods(
+							user_id      => 'test_user2',
+							display_name => re(qr/\S/),
+							suspended    => any(1,0),
+							max_buckets  => 1000,
+							subusers     => [],
+							keys         => [
+								{
+									user => 'test_user2',
+									access_key => re(qr/\S/),
+									secret_key => re(qr/\S/),
+								}
+							],
+							swift_keys => [],
+							caps       => [],
+						)
+					)
+				);
+			
+			};
+			it "should be able to create a user" => sub {
+				eval {
+					$client->get_user(
+						uid => 'test_user3',
+					)->delete;
 				};
+				my $sut = $client->create_user(
+					uid          => 'test_user3',
+					display_name => 'display',
+				);
+				cmp_deeply(
+					$sut,
+					all(
+						isa('Ceph::RadosGW::Admin::User'),					
+						methods(
+							user_id      => 'test_user3',
+							display_name => 'display',
+						)
+					)
+				);
 			};
 		};
 	};
 };
 
 describe "A User" => sub {
-	my ($client, $user);
+	my ($client, $user, $name);
+	my $i = 4;
 	before each => sub {
-		eval {
-			$client->get_user(
-				uid => 'test_user6',
-			)->delete;
-		};
+		$name = "test_user$i";
+		$i++;
+		
 		$client = Ceph::RadosGW::Admin->new(
 			access_key => $access_key,
 			secret_key => $secret_key,
 			url        => $url,
 		);
+		
+		eval {
+			withoutVCR {
+				$client->get_user(
+					uid => $name,
+				)->delete;
+			};
+		};
+		
 		$user = $client->create_user(
-			uid          => 'test_user6',
+			uid          => $name,
 			display_name => 'display',
 		);
 	};
+	
+	after each => sub {
+		eval {
+			$client->get_user(
+				uid => $name,
+			)->delete;
+		};
+	};
+	
+
 	it "should be able to delete itself" => sub {
 		$user->delete;
 		dies_ok {
-			$client->get_user(uid => 'test_user6');
+			$client->get_user(uid => $name);
 		};
 	};
 	it "should be able to give a hashref version of itself" => sub {
@@ -155,7 +175,7 @@ describe "A User" => sub {
 		cmp_deeply(
 			$sut,
 			superhashof({
-				user_id      => 'test_user6',
+				user_id      => $name,
 				display_name => ignore(),
 			})
 		);
@@ -164,13 +184,13 @@ describe "A User" => sub {
 		$user->display_name('new display name');
 		$user->suspended(1);
 		$user->save;
-		my $sut = $client->get_user(uid => 'test_user6');
+		my $sut = $client->get_user(uid => $name);
 		cmp_deeply(
 			$sut,
 			all(
 				isa('Ceph::RadosGW::Admin::User'),
 				methods(
-					user_id      => 'test_user6',
+					user_id      => $name,
 					display_name => 'new display name',
 					suspended    => 1,
 				)
@@ -183,12 +203,12 @@ describe "A User" => sub {
 			\@sut,
 			superbagof(
 				{
-					user         => 'test_user6',
+					user         => $name,
 					'access_key' => re(qr/\S/),
 					'secret_key' => re(qr/\S/),
 				},
 				{
-					user         => 'test_user6',
+					user         => $name,
 					'access_key' => re(qr/\S/),
 					'secret_key' => re(qr/\S/),
 				}
@@ -211,4 +231,8 @@ describe "A User" => sub {
 		};
 	};
 };
-runtests unless caller;
+
+
+withVCR {
+	runtests;
+} tape => File::Spec->catfile($FindBin::Bin, "admin_ops.tape");

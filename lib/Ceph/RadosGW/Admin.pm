@@ -89,7 +89,7 @@ sub _request {
 	_debug($res);
 	
 	unless ($res->is_success) {
-		die sprintf("%s - %s", $res->status_line, $res->content);
+		die sprintf("%s - %s (%s)", $res->status_line, $res->content, $req->as_string);
 	}
     
     if ($res->content) {
@@ -125,7 +125,11 @@ sub _make_query {
 	}
 	
 	my $u = URI->new("", "http");
-	$u->query_form_hash(\%fixed);
+	
+	foreach my $key (sort keys %fixed) {
+		$u->query_param($key, $fixed{$key});
+	}
+	
 	
 	return $u->query;
 

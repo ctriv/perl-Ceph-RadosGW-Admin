@@ -11,6 +11,9 @@ use URI;
 use Digest::HMAC_SHA1;
 use Digest::MD5 ();
 
+# this is almost a direct copy of
+# https://metacpan.org/pod/Net::Amazon::S3::HTTPRequest
+
 # ABSTRACT: Create a signed HTTP::Request
 
 my $METADATA_PREFIX      = 'x-amz-meta-';
