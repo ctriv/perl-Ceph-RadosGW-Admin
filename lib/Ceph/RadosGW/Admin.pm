@@ -17,9 +17,41 @@ use Ceph::RadosGW::Admin::User;
 Ceph::RadosGW::Admin - Bindings for the rados gateway admin api.
 
 =head1 SYNOPSIS
+	
+	my $admin = Ceph::RadosGW::Admin->new(
+		access_key => 'not really secret',
+		secret_key => 'actrually secret',
+		url        => 'https://your.rados.gateway.com/',
+	);
+	
+	my $user  = $admin->create_user(
+		uid          => 'myusername',
+		display_name => 'my user name',
+	);
+	
+	# they're really evil, suspending them should be enough
+	$user->suspended(1);
+	$user->save;
+	
+	# nah, they're really evil
+	$user->delete;
+	
+	my $otheruser = $admin->get_user(uid => 'other');
+	
+	my @keys          = $otheruser->keys();
+	my @keys_plus_one = $otheruser->create_key();
+	
+	$otheruser->delete_key(access_key => $keys[0]->{access_key});
+	
+	my @buckets = $otheruser->get_bucket_info();
+	
 
 =head1 DESCRIPTION
 
+This module provides an interface the
+L<Admin OPs|http://docs.ceph.com/docs/master/radosgw/adminops/> interface of a
+ceph rados gateway.  It is at this time incomplete, with only the parts needed
+by the authors implemented.
 
 =cut
 
@@ -142,6 +174,10 @@ sub _make_query {
 =item *
 
 The docs are pretty middling at the moment.
+
+=item *
+
+This module has only been tested against the Dumping release of ceph.  
 
 =back
 
