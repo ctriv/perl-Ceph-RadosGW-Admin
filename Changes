@@ -1,4 +1,5 @@
 Revision history for Perl module Ceph::RadosGW::RadosGW
 
+{{$NEXT}}
 
-0.1
+	Initial release.

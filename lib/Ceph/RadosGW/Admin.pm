@@ -11,7 +11,6 @@ use URI;
 use URI::QueryParam;
 use Ceph::RadosGW::Admin::User;
 
-our $VERSION   = '0.1';
 
 =head1 NAME
 
