@@ -20,7 +20,7 @@ Ceph::RadosGW::Admin - Bindings for the rados gateway admin api.
 	
 	my $admin = Ceph::RadosGW::Admin->new(
 		access_key => 'not really secret',
-		secret_key => 'actrually secret',
+		secret_key => 'actually secret',
 		url        => 'https://your.rados.gateway.com/',
 	);
 	
@@ -177,7 +177,7 @@ The docs are pretty middling at the moment.
 
 =item *
 
-This module has only been tested against the Dumping release of ceph.  
+This module has only been tested against the Dumpling release of ceph.  
 
 =back
 
