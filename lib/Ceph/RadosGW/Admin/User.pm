@@ -5,6 +5,17 @@ use warnings;
 
 use Moose;
 
+=head1 NAME
+
+Ceph::RadosGW::Admin::User - A Rados Gateway User
+
+=head1 DESCRIPTION
+
+This class provides objects that represent users on a rados gateway object
+store.
+
+=cut
+
 has user_id      => (is => 'ro', required => 1, isa => 'Str');
 has display_name => (is => 'rw', required => 1, isa => 'Str');
 has suspended    => (is => 'rw', required => 1, isa => 'Bool');
@@ -15,6 +26,16 @@ has swift_keys   => (is => 'rw', required => 1, isa => 'ArrayRef[Str]');
 has caps         => (is => 'rw', required => 1, isa => 'ArrayRef[Str]');
 has _client      => (is => 'ro', required => 1, isa => 'Ceph::RadosGW::Admin');
 
+=head1 METHODS
+
+=head2 delete
+
+Removes the user from the rados system.
+
+Dies on failure.
+
+=cut
+
 sub delete {
 	my ($self) = @_;
 	
@@ -22,6 +43,14 @@ sub delete {
 	
 	return 1;
 }
+
+=head2 save
+
+Save changes to the user.
+
+Dies on failure.
+
+=cut
 
 sub save {
 	my ($self) = @_;
@@ -34,6 +63,14 @@ sub save {
 	);
 }
 
+=head2 create_key
+
+Create an access/secret key pair. Returns the keys as a list of hashrefs.
+
+Dies on failure.
+
+=cut
+
 sub create_key {
 	my ($self) = @_;
 	
@@ -43,6 +80,14 @@ sub create_key {
 		generate_key => 'True',
 	);
 }
+
+=head2 delete_key
+
+Delete a specific access/secret key pair.
+
+Dies on failure.
+
+=cut
 
 sub delete_key {
 	my ($self, %args) = @_;
@@ -54,6 +99,14 @@ sub delete_key {
 	);
 }
 
+=head2 get_usage
+
+Get usage information for the user.
+
+Dies on failure.
+
+=cut
+
 sub get_usage {
 	my ($self, %args) = @_;
 
@@ -61,6 +114,14 @@ sub get_usage {
 
 	return %usage;
 }
+
+=head2 get_bucket_info
+
+Gets bucket information and statistics for the user.
+
+Dies on failure.
+
+=cut
 
 sub get_bucket_info {
 	my ($self) = @_;

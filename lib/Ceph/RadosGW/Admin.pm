@@ -48,10 +48,11 @@ Ceph::RadosGW::Admin - Bindings for the rados gateway admin api.
 
 =head1 DESCRIPTION
 
-This module provides an interface the
+This module provides an interface to the
 L<Admin OPs|http://docs.ceph.com/docs/master/radosgw/adminops/> interface of a
 ceph rados gateway.  It is at this time incomplete, with only the parts needed
-by the authors implemented.
+by the authors implemented. Patches for the rest of the functionality are
+encouraged.
 
 =cut
 
@@ -63,6 +64,21 @@ has useragent => (
 	builder => 'build_useragent',
 );
 
+
+=head1 METHODS
+
+=head2 get_user
+
+Returns a L<Ceph::RadosGW::Admin::User> object representing the given C<uid>.
+
+Dies if the user does not exist.
+
+Example:
+
+	my $user = $admin->get_user(uid => 'someuserhere');
+	
+=cut
+
 sub get_user {
 	my ($self, %args) = @_;
 	
@@ -73,6 +89,22 @@ sub get_user {
 		_client => $self
 	);
 }
+
+=head2 create_user
+
+Makes a new user on the rados gateway, and returns a
+L<Ceph::RadosGW::Admin::User> object representing that user.
+
+Dies on failure.
+
+Example:
+
+	my $new_user = $admin->create_user(
+		uid          => 'username',
+		display_name => 'Our New User',
+	);
+
+=cut
 
 sub create_user {
 	my ($self, %args) = @_;
@@ -199,7 +231,8 @@ LICENSE file included with this module.
 
 =head1 SEE ALSO
 
-perl(1)
+perl(1), L<Admin OPs API|http://docs.ceph.com/docs/master/radosgw/adminops/>
+L<Ceph|http://www.ceph.com/>
 
 =cut
 
