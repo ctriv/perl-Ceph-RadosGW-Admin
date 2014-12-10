@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Moose;
+use namespace::autoclean;
 
 =head1 NAME
 
@@ -25,6 +26,8 @@ has keys         => (is => 'rw', required => 1, isa => 'ArrayRef[HashRef[Str]]')
 has swift_keys   => (is => 'rw', required => 1, isa => 'ArrayRef[Str]');
 has caps         => (is => 'rw', required => 1, isa => 'ArrayRef[Str]');
 has _client      => (is => 'ro', required => 1, isa => 'Ceph::RadosGW::Admin');
+
+__PACKAGE__->meta->make_immutable;
 
 =head1 METHODS
 

@@ -1,6 +1,7 @@
 Revision history for Perl module Ceph::RadosGW::RadosGW
 
 {{$NEXT}}
+	- Added some Moose best practice details that had been overlooked.
 
 0.2 Tue Dec 02 2014
 	- Fix homepage in the metadata.

@@ -10,7 +10,7 @@ use Moose;
 use URI;
 use URI::QueryParam;
 use Ceph::RadosGW::Admin::User;
-
+use namespace::autoclean;
 
 =head1 NAME
 
@@ -64,6 +64,7 @@ has useragent => (
 	builder => 'build_useragent',
 );
 
+__PACKAGE__->meta->make_immutable;
 
 =head1 METHODS
 
