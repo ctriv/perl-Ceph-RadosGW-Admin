@@ -1,6 +1,7 @@
 Revision history for Perl module Ceph::RadosGW::RadosGW
 
 {{$NEXT}}
+	- Pass arguments along to the gateway when $user->delete is called.
 
 0.3 Wed Dec 10 2014
 	- Added some Moose best practice details that had been overlooked.

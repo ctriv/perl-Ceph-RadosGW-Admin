@@ -170,6 +170,20 @@ describe "A User" => sub {
 			$client->get_user(uid => $name);
 		};
 	};
+	
+	it "should be able to purge data when a user is deleted" => sub {
+		my %args;
+		$user->expects('_request')->returns(sub { shift; %args = @_ });
+		$user->delete(purge_data => 1);
+		cmp_deeply(
+			\%args,
+			{
+				purge_data => 1,
+				DELETE     => ignore(),
+			}
+		);
+	};
+	
 	it "should be able to give a hashref version of itself" => sub {
 		my $sut = $user->as_hashref;
 		cmp_deeply(

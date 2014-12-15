@@ -40,9 +40,9 @@ Dies on failure.
 =cut
 
 sub delete {
-	my ($self) = @_;
+	my ($self, %args) = @_;
 	
-	$self->_request(DELETE => 'user');
+	$self->_request(DELETE => 'user', %args);
 	
 	return 1;
 }
